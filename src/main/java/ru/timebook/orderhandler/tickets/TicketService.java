@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.Set;
 
 public interface TicketService {
-    Map<Long, Ticket> getNeedProcessedTickets();
+    Set<Ticket> getNeedProcessedTickets();
 
-    Map<Long, Ticket> getNeedProcessedTickets(Set<Long> issueIdsFilter);
+    Set<Ticket> getNeedProcessedTickets(Set<Long> issueIdsFilter);
 
     void processTicket(@NonNull Ticket ticket);
 

@@ -1,9 +1,6 @@
 package ru.timebook.orderhandler.okDeskServer.domain;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
@@ -12,7 +9,7 @@ public class Token {
     @GeneratedValue
     private Long id;
 
-    @OneToOne
+    @ManyToOne
     private User user;
 
     private String tokenString;

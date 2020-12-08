@@ -19,34 +19,35 @@ import java.util.stream.Collectors;
 
 @Service
 public class TicketServiceImpl implements TicketService {
-    @Autowired
-    TicketRepository ticketRepository;
-
-    @Autowired
-    SpreadsheetRepositoryImpl spreadsheetRepository;
-
-    @Autowired
-    TicketParser ticketParser;
+    private final TicketRepository ticketRepository;
+    private final SpreadsheetRepositoryImpl spreadsheetRepository;
+    private final TicketParser ticketParser;
 
     Logger logger = LoggerFactory.getLogger(OrderHandler.class);
 
-    @Override
-    public Map<Long, Ticket> getNeedProcessedTickets() {
-        var ticketIds = ticketRepository.getNeedProcessTicketIds();
-        var tickets = ticketRepository.getTickets(ticketIds);
-
-        return tickets.stream().collect(Collectors.toMap(Ticket::getId, Function.identity()));
+    public TicketServiceImpl(TicketRepository ticketRepository, SpreadsheetRepositoryImpl spreadsheetRepository, TicketParser ticketParser) {
+        this.ticketRepository = ticketRepository;
+        this.spreadsheetRepository = spreadsheetRepository;
+        this.ticketParser = ticketParser;
     }
 
     @Override
-    public Map<Long, Ticket> getNeedProcessedTickets(Set<Long> issueIdsFilter) {
+    public Set<Ticket> getNeedProcessedTickets() {
+        var ticketIds = ticketRepository.getNeedProcessTicketIds();
+        var tickets = ticketRepository.getTickets(ticketIds);
+
+        return Set.copyOf(tickets);
+    }
+
+    @Override
+    public Set<Ticket> getNeedProcessedTickets(Set<Long> issueIdsFilter) {
         var ticketIds = ticketRepository.getNeedProcessTicketIds();
         var filteredIds = ticketIds.stream()
                 .filter(ticketId -> issueIdsFilter.contains(ticketId))
                 .collect(Collectors.toList());
         var tickets = ticketRepository.getTickets(filteredIds);
 
-        return tickets.stream().collect(Collectors.toMap(Ticket::getId, Function.identity()));
+        return Set.copyOf(tickets);
     }
 
     @Override

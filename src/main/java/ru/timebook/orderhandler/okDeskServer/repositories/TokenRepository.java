@@ -5,9 +5,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ru.timebook.orderhandler.okDeskServer.domain.Token;
 
+import java.util.Optional;
+
 @Repository
 public interface TokenRepository extends JpaRepository<Token, Long> {
-
-    @Query(value = "SELECT * FROM token t WHERE t.token_string = ?", nativeQuery = true)
-    Token findByToken(String token);
+    Optional<Token> findFirstByTokenStringEquals(String token_string);
 }

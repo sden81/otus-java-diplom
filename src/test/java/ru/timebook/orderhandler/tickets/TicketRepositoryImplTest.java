@@ -6,11 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import ru.timebook.orderhandler.AbstractTest;
+import ru.timebook.orderhandler.okDeskClient.IssueListFilter;
 import ru.timebook.orderhandler.okDeskClient.OkDeskRepository;
 import ru.timebook.orderhandler.okDeskClient.dto.*;
 import ru.timebook.orderhandler.tickets.domain.Ticket;
@@ -21,23 +20,24 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 class TicketRepositoryImplTest extends AbstractTest {
-    @InjectMocks
     private TicketRepositoryImpl ticketRepository;
-
-    @Mock
     private OkDeskRepository mockOkDeskRepository;
 
     @BeforeEach
     public void init() {
+        mockOkDeskRepository = mock(OkDeskRepository.class);
+
+        ticketRepository = new TicketRepositoryImpl(mockOkDeskRepository, IssueListFilter.builder().build());
         MockitoAnnotations.initMocks(this);
     }
 
     @Test
     void getTicket() {
-        Mockito.when(mockOkDeskRepository.getIssue(Mockito.any())).thenReturn(getFakeIssue());
+        when(mockOkDeskRepository.getIssue(any())).thenReturn(getFakeIssue());
 
         var ticket = ticketRepository.getTicket(1L);
         assertThat(ticket.isPresent()).isTrue();
@@ -47,7 +47,7 @@ class TicketRepositoryImplTest extends AbstractTest {
 
     @Test
     void getTickets() {
-        Mockito.when(mockOkDeskRepository.getIssue(Mockito.any())).thenReturn(getFakeIssue());
+        when(mockOkDeskRepository.getIssue(any())).thenReturn(getFakeIssue());
 
         var tickets = ticketRepository.getTickets(Arrays.asList(1L));
         assertThat(tickets).isNotEmpty();
@@ -56,7 +56,7 @@ class TicketRepositoryImplTest extends AbstractTest {
 
     @Test
     void getNeedProcessTicketIds() {
-        Mockito.when(mockOkDeskRepository.getIssuesList(Mockito.any())).thenReturn(new ArrayList<>() {{
+        when(mockOkDeskRepository.getIssuesList(Mockito.any())).thenReturn(new ArrayList<>() {{
             add(1L);
             add(2L);
             add(3L);
@@ -68,7 +68,7 @@ class TicketRepositoryImplTest extends AbstractTest {
     }
 
     @Test
-    void generateJsonIssue(){
+    void generateJsonIssue() {
         var fakeIssue = getFakeIssue().get();
 
         ObjectMapper objectMapper = (new ObjectMapper())
@@ -83,7 +83,7 @@ class TicketRepositoryImplTest extends AbstractTest {
         }
     }
 
-    private Optional<Issue> getFakeIssue(){
+    private Optional<Issue> getFakeIssue() {
         return Optional.of(
                 Issue.builder()
                         .id(134)
@@ -95,7 +95,7 @@ class TicketRepositoryImplTest extends AbstractTest {
         );
     }
 
-    private Ticket getFakeTicket(){
+    private Ticket getFakeTicket() {
         return Ticket.builder()
                 .id(1)
                 .author(getFakeAuthor())
@@ -108,11 +108,11 @@ class TicketRepositoryImplTest extends AbstractTest {
                 .build();
     }
 
-    private Author getFakeAuthor(){
+    private Author getFakeAuthor() {
         return new Author(12, "Volkov", "some author type");
     }
 
-    private List<UserComment> getFakeComments(){
+    private List<UserComment> getFakeComments() {
         return Arrays.asList(
                 new UserComment(4, true, "comment1", LocalDateTime.now().minusDays(18), getFakeAuthor()),
                 new UserComment(5, true, "comment2", LocalDateTime.now().minusDays(17), getFakeAuthor()),
@@ -120,7 +120,7 @@ class TicketRepositoryImplTest extends AbstractTest {
         );
     }
 
-    private Status getFakeStatus(){
+    private Status getFakeStatus() {
         return new Status(StatusCodes.completed, "all done");
     }
 }

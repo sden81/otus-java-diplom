@@ -40,13 +40,11 @@ public class OkDeskServerService {
     }
 
     public Optional<Token> getToken(String tokenString) {
-        var tokenObject = tokenRepository.findByToken(tokenString);
-
-        return tokenObject == null ? Optional.empty() : Optional.of(tokenObject);
+        return tokenRepository.findFirstByTokenStringEquals(tokenString);
     }
 
     public Optional<Issue> getIssue(Long id) {
-        var rawIssue = issueRepository.findIssueBy(id);
+        var rawIssue = issueRepository.findById(id);
 
         if (rawIssue == null) {
             return Optional.empty();
@@ -57,7 +55,7 @@ public class OkDeskServerService {
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         try {
-            var content = objectMapper.readValue(rawIssue.getContent(), Issue.class);
+            var content = objectMapper.readValue(rawIssue.get().getContent(), Issue.class);
             return Optional.of(Issue.builder()
                     .id(content.getId())
                     .title(content.getTitle())
@@ -83,7 +81,7 @@ public class OkDeskServerService {
     }
 
     public List<UserComment> getCommentsByIssueId(Long issueId) {
-        var rawComments = commentRepository.findCommentsBy(issueId);
+        var rawComments = commentRepository.findAllByIssue_Id(issueId);
 
         return rawComments.stream().map(rawComment -> {
             ObjectMapper objectMapper = (new ObjectMapper())

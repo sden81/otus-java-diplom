@@ -18,5 +18,8 @@ public class OrderHandler {
 
             var taskService = context.getBean(TaskServiceImpl.class);
             taskService.runTask(runOptions);
+            if (taskService.isSingleTask()){
+                System.exit(0);
+            }
         }
     }

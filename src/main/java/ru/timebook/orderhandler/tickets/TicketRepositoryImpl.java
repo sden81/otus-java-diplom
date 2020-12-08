@@ -15,22 +15,25 @@ import java.util.stream.Collectors;
 
 @Repository
 public class TicketRepositoryImpl implements TicketRepository {
-    @Autowired
-    private OkDeskRepository okDeskRepository;
+    private final OkDeskRepository okDeskRepository;
 
-    @Autowired
-    private IssueListFilter listFilter;
+    private final IssueListFilter listFilter;
 
     private List<Long> excludedOkDeskIssueIds = new ArrayList<>();
 
     //use for testing
     private List<Long> includedOnlyOkDeskIssueIds = new ArrayList<>();
 
+    public TicketRepositoryImpl(OkDeskRepository okDeskRepository, IssueListFilter listFilter) {
+        this.okDeskRepository = okDeskRepository;
+        this.listFilter = listFilter;
+    }
+
     @Override
     public List<Long> getNeedProcessTicketIds() {
         List<Long> okDeskIssueIdsList = okDeskRepository.getIssuesList(listFilter);
 
-        if (!getIncludedOnlyOkDeskIssueIds().isEmpty()){
+        if (!getIncludedOnlyOkDeskIssueIds().isEmpty()) {
             return okDeskIssueIdsList.stream()
                     .filter(id -> getIncludedOnlyOkDeskIssueIds().contains(id))
                     .collect(Collectors.toList()
@@ -53,11 +56,11 @@ public class TicketRepositoryImpl implements TicketRepository {
         return excludedOkDeskIssueIds;
     }
 
-    public void addIncludedOnlyOkDeskIssueIds(Long issueId){
+    public void addIncludedOnlyOkDeskIssueIds(Long issueId) {
         includedOnlyOkDeskIssueIds.add(issueId);
     }
 
-    public List<Long> getIncludedOnlyOkDeskIssueIds(){
+    public List<Long> getIncludedOnlyOkDeskIssueIds() {
         return includedOnlyOkDeskIssueIds;
     }
 

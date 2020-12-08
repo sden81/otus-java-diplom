@@ -16,6 +16,8 @@ import ru.timebook.orderhandler.okDeskClient.dto.StatusCodes;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @ComponentScan
