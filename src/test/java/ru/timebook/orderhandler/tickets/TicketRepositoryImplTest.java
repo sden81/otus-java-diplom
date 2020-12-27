@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import ru.timebook.orderhandler.AbstractTest;
 import ru.timebook.orderhandler.okDeskClient.IssueListFilter;
@@ -15,7 +14,6 @@ import ru.timebook.orderhandler.okDeskClient.dto.*;
 import ru.timebook.orderhandler.tickets.domain.Ticket;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -52,19 +50,6 @@ class TicketRepositoryImplTest extends AbstractTest {
         var tickets = ticketRepository.getTickets(Arrays.asList(1L));
         assertThat(tickets).isNotEmpty();
         assertThat(tickets.size()).isEqualTo(1);
-    }
-
-    @Test
-    void getNeedProcessTicketIds() {
-        when(mockOkDeskRepository.getIssuesList(Mockito.any())).thenReturn(new ArrayList<>() {{
-            add(1L);
-            add(2L);
-            add(3L);
-        }});
-        ticketRepository.addExcludedOkDeskIssueIds(1L);
-        List<Long> ticketsIds = ticketRepository.getNeedProcessTicketIds();
-        assertThat(ticketsIds).isNotEmpty();
-        assertThat(ticketsIds.size()).isEqualTo(2);
     }
 
     @Test
@@ -109,18 +94,36 @@ class TicketRepositoryImplTest extends AbstractTest {
     }
 
     private Author getFakeAuthor() {
-        return new Author(12, "Volkov", "some author type");
+        return Author.builder().id(12L).name("Volkov").type("some author type").build();
     }
 
     private List<UserComment> getFakeComments() {
         return Arrays.asList(
-                new UserComment(4, true, "comment1", LocalDateTime.now().minusDays(18), getFakeAuthor()),
-                new UserComment(5, true, "comment2", LocalDateTime.now().minusDays(17), getFakeAuthor()),
-                new UserComment(6, true, "comment3", LocalDateTime.now().minusDays(16), getFakeAuthor())
+                UserComment.builder()
+                        .id(4)
+                        .isPublic(true)
+                        .content("comment1")
+                        .published_at(LocalDateTime.now().minusDays(18))
+                        .author(getFakeAuthor())
+                        .build(),
+                UserComment.builder()
+                        .id(5)
+                        .isPublic(true)
+                        .content("comment2")
+                        .published_at(LocalDateTime.now().minusDays(17))
+                        .author(getFakeAuthor())
+                        .build(),
+                UserComment.builder()
+                        .id(6)
+                        .isPublic(true)
+                        .content("comment3")
+                        .published_at(LocalDateTime.now().minusDays(16))
+                        .author(getFakeAuthor())
+                        .build()
         );
     }
 
     private Status getFakeStatus() {
-        return new Status(StatusCodes.completed, "all done");
+        return Status.builder().code(StatusCodes.completed).name("all done").build();
     }
 }

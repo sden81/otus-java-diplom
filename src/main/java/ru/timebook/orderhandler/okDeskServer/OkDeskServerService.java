@@ -46,7 +46,7 @@ public class OkDeskServerService {
     public Optional<Issue> getIssue(Long id) {
         var rawIssue = issueRepository.findById(id);
 
-        if (rawIssue == null) {
+        if (rawIssue.isEmpty()){
             return Optional.empty();
         }
 

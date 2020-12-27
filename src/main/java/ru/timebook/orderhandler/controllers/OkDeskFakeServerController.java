@@ -7,16 +7,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.timebook.orderhandler.okDeskServer.OkDeskServerService;
 
 @RestController
 public class OkDeskFakeServerController {
-    @Autowired
-    private OkDeskServerService okDeskServerService;
+    private final OkDeskServerService okDeskServerService;
+
+    public OkDeskFakeServerController(OkDeskServerService okDeskServerService) {
+        this.okDeskServerService = okDeskServerService;
+    }
 
     @GetMapping("/issues/count")
     ResponseEntity<Iterable<Long>> getIssuesList(@RequestParam MultiValueMap<String, String> params) {
@@ -62,5 +62,10 @@ public class OkDeskFakeServerController {
         }
 
         return new ResponseEntity<>(okDeskServerService.getIssue(Long.parseLong(issueId)).get(), HttpStatus.OK);
+    }
+
+    @PostMapping("/issues/{issueId}/comments")
+    ResponseEntity<?> addIssueComments(@PathVariable String issueId, @RequestParam String api_token) {
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

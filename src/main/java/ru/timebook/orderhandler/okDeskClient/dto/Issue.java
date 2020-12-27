@@ -3,49 +3,49 @@ package ru.timebook.orderhandler.okDeskClient.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
-@Value
+@Data
 @Builder
 public class Issue {
-    long id;
+    private final long id;
 
-    String title;
+    private String title;
 
-    String description;
+    private String description;
 
     @JsonProperty("created_at")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
-    LocalDateTime createdAt;
+    private final LocalDateTime createdAt;
 
     @JsonProperty("completed_at")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
-    LocalDateTime completedAt;
+    private final LocalDateTime completedAt;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     @JsonProperty("deadline_at")
-    LocalDateTime deadlineAt;
+    private final LocalDateTime deadlineAt;
 
-    String source;
+    private String source;
 
     @JsonProperty("updated_at")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
-    LocalDateTime updatedAt;
+    private final LocalDateTime updatedAt;
 
     @JsonProperty("company_id")
-    long companyId;
+    private final long companyId;
 
     @JsonProperty("group_id")
-    long groupId;
+    private final long groupId;
 
-    Status status;
+    private final Status status;
 
     @JsonProperty("old_status")
-    Status oldStatus;
+    private final Status oldStatus;
 
-    Author author;
+    private final Author author;
 
 
     //            "delayed_to":null,

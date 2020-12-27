@@ -1,9 +1,9 @@
 package ru.timebook.orderhandler.healthcheck.dto;
 
-import lombok.Value;
+import lombok.Data;
 
-@Value
+@Data
 public class Item {
-    String name;
-    Boolean success;
+    private final String name;
+    private final Boolean success;
 }

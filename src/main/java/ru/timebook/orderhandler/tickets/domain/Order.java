@@ -1,18 +1,19 @@
 package ru.timebook.orderhandler.tickets.domain;
 
 import lombok.Builder;
+import lombok.Data;
 import lombok.Value;
 
-@Value
+@Data
 @Builder
 public class Order {
-    String orderId;
-    String consumerName;
-    int totalSum;
-    int itemCount;
-    Company company;
-    Month reportingMonth;
-    int year;
+    private String orderId;
+    private String consumerName;
+    private final int totalSum;
+    private final int itemCount;
+    private final Company company;
+    private final Month reportingMonth;
+    private final int year;
 
     /**
      * example "Июнь (2020) Ашан"

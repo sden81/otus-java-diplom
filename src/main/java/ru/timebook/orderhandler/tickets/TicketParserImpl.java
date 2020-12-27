@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 
 @Component
 public class TicketParserImpl implements TicketParser {
-    Logger logger = LoggerFactory.getLogger(TicketParserImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(TicketParserImpl.class);
 
     @Override
     public Order parseTicket(Ticket ticket) {

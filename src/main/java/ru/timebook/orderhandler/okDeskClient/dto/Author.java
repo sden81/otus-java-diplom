@@ -1,10 +1,12 @@
 package ru.timebook.orderhandler.okDeskClient.dto;
 
-import lombok.Value;
+import lombok.Builder;
+import lombok.Data;
 
-@Value
+@Builder
+@Data
 public class Author {
-    long id;
-    String name;
-    String type;
+    private final long id;
+    private String name;
+    private String type;
 }

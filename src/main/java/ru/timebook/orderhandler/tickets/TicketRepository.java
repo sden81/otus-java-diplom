@@ -10,11 +10,7 @@ public interface TicketRepository {
 
     List<Ticket> getTickets(List<Long> ticketIds);
 
-    List<Long> getExcludedTicketIds();
-
     Optional<Ticket> getTicket(Long id);
 
-    void addExcludedOkDeskIssueIds(Long excludedOkDeskIssueId);
-
-    void markTicketAsProcessed(Ticket ticket);
+    void markTicketAsProcessed(Ticket ticket, String processedComment);
 }

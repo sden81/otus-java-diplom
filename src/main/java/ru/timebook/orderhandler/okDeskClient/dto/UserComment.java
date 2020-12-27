@@ -2,21 +2,23 @@ package ru.timebook.orderhandler.okDeskClient.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Value;
+import lombok.Builder;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
-@Value
+@Builder
+@Data
 public class UserComment {
-    long id;
+    private final long id;
 
     @JsonProperty("public")
-    boolean isPublic;
+    private final boolean isPublic;
 
-    String content;
+    private String content;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
-    LocalDateTime published_at;
+    private final LocalDateTime published_at;
 
-    Author author;
+    private final Author author;
 }

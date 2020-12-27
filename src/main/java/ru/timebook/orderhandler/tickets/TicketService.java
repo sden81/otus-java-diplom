@@ -17,4 +17,6 @@ public interface TicketService {
     Order parseTicket(@NonNull Ticket ticket);
 
     boolean isNeedProcessTicket(@NonNull Ticket ticket);
+
+    void addExcludedOkDeskIssueId(Long id);
 }

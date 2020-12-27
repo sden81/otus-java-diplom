@@ -7,7 +7,7 @@ server:
 okDesk:
   uri: "http://localhost:8084"
   getIssuesSinceDaysAgo: 30
-  comment_marker: "Add record in google sheet"
+  processed_comment_marker: "Add record in google sheet"
   okDeskAuthorId: 4654
   api_token: "123"
 

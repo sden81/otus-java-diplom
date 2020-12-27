@@ -1,15 +1,15 @@
 package ru.timebook.orderhandler.healthcheck.dto;
 
 import lombok.Builder;
+import lombok.Data;
 import lombok.Singular;
-import lombok.Value;
 
 import java.util.Set;
 
-@Value
+@Data
 @Builder
 public class ReadinessHealthcheck {
-    Integer readinessHealthcheckStatus;
+    private final Integer readinessHealthcheckStatus;
     @Singular("addItem")
-    Set<Item> items;
+    private final Set<Item> items;
 }

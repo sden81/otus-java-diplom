@@ -1,6 +1,5 @@
 package ru.timebook.orderhandler.tickets;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 import ru.timebook.orderhandler.okDeskClient.IssueListFilter;
@@ -11,18 +10,12 @@ import ru.timebook.orderhandler.tickets.domain.Ticket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Repository
 public class TicketRepositoryImpl implements TicketRepository {
     private final OkDeskRepository okDeskRepository;
 
     private final IssueListFilter listFilter;
-
-    private List<Long> excludedOkDeskIssueIds = new ArrayList<>();
-
-    //use for testing
-    private List<Long> includedOnlyOkDeskIssueIds = new ArrayList<>();
 
     public TicketRepositoryImpl(OkDeskRepository okDeskRepository, IssueListFilter listFilter) {
         this.okDeskRepository = okDeskRepository;
@@ -31,37 +24,7 @@ public class TicketRepositoryImpl implements TicketRepository {
 
     @Override
     public List<Long> getNeedProcessTicketIds() {
-        List<Long> okDeskIssueIdsList = okDeskRepository.getIssuesList(listFilter);
-
-        if (!getIncludedOnlyOkDeskIssueIds().isEmpty()) {
-            return okDeskIssueIdsList.stream()
-                    .filter(id -> getIncludedOnlyOkDeskIssueIds().contains(id))
-                    .collect(Collectors.toList()
-                    );
-        }
-
-        return okDeskIssueIdsList.stream()
-                .filter(id -> !getExcludedTicketIds().contains(id))
-                .collect(Collectors.toList()
-                );
-    }
-
-    @Override
-    public void addExcludedOkDeskIssueIds(Long issueId) {
-        excludedOkDeskIssueIds.add(issueId);
-    }
-
-    @Override
-    public List<Long> getExcludedTicketIds() {
-        return excludedOkDeskIssueIds;
-    }
-
-    public void addIncludedOnlyOkDeskIssueIds(Long issueId) {
-        includedOnlyOkDeskIssueIds.add(issueId);
-    }
-
-    public List<Long> getIncludedOnlyOkDeskIssueIds() {
-        return includedOnlyOkDeskIssueIds;
+        return okDeskRepository.getIssuesList(listFilter);
     }
 
     @Override
@@ -104,7 +67,7 @@ public class TicketRepositoryImpl implements TicketRepository {
     }
 
     @Override
-    public void markTicketAsProcessed(Ticket ticket) {
-        okDeskRepository.addComment(ticket.getId(), Ticket.processedTicketCommentText);
+    public void markTicketAsProcessed(Ticket ticket, String processedComment) {
+        okDeskRepository.addComment(ticket.getId(), processedComment);
     }
 }

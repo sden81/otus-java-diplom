@@ -1,9 +1,11 @@
 package ru.timebook.orderhandler.okDeskClient.dto;
 
-import lombok.Value;
+import lombok.Builder;
+import lombok.Data;
 
-@Value
+@Builder
+@Data
 public class Status {
-    StatusCodes code;
-    String name;
+    private StatusCodes code;
+    private String name;
 }

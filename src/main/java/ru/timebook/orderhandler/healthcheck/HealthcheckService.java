@@ -16,13 +16,13 @@ import java.util.concurrent.Callable;
 public class HealthcheckService {
     Map<String, Callable<Boolean>> itemsMap = new HashMap<>();
 
-    @Autowired
-    OkDeskRepository okDeskRepository;
+    private final OkDeskRepository okDeskRepository;
 
-    @Autowired
-    SpreadsheetRepository spreadsheetRepository;
+    private final SpreadsheetRepository spreadsheetRepository;
 
-    public HealthcheckService() {
+    public HealthcheckService(OkDeskRepository okDeskRepository, SpreadsheetRepository spreadsheetRepository) {
+        this.okDeskRepository = okDeskRepository;
+        this.spreadsheetRepository = spreadsheetRepository;
         init();
     }
 

@@ -2,30 +2,39 @@ package ru.timebook.orderhandler.tickets;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import ru.timebook.orderhandler.OrderHandler;
+import ru.timebook.orderhandler.spreadsheet.SpreadsheetRepository;
 import ru.timebook.orderhandler.spreadsheet.exceptions.OrderRecordAlreadyExistException;
-import ru.timebook.orderhandler.spreadsheet.SpreadsheetRepositoryImpl;
-import ru.timebook.orderhandler.tickets.exceptions.TicketException;
 import ru.timebook.orderhandler.tickets.domain.Order;
 import ru.timebook.orderhandler.tickets.domain.Ticket;
+import ru.timebook.orderhandler.tickets.exceptions.TicketException;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 public class TicketServiceImpl implements TicketService {
     private final TicketRepository ticketRepository;
-    private final SpreadsheetRepositoryImpl spreadsheetRepository;
+    private final SpreadsheetRepository spreadsheetRepository;
     private final TicketParser ticketParser;
 
-    Logger logger = LoggerFactory.getLogger(OrderHandler.class);
+    private final List<Long> excludedOkDeskIssueIds = Collections.synchronizedList(new ArrayList<>());
 
-    public TicketServiceImpl(TicketRepository ticketRepository, SpreadsheetRepositoryImpl spreadsheetRepository, TicketParser ticketParser) {
+    private final Logger logger = LoggerFactory.getLogger(OrderHandler.class);
+
+    @Value("${okDesk.processed_comment_marker}")
+    private String processedCommentMarker;
+
+    public TicketServiceImpl(
+            TicketRepository ticketRepository,
+            SpreadsheetRepository spreadsheetRepository,
+            TicketParser ticketParser) {
         this.ticketRepository = ticketRepository;
         this.spreadsheetRepository = spreadsheetRepository;
         this.ticketParser = ticketParser;
@@ -33,27 +42,31 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public Set<Ticket> getNeedProcessedTickets() {
-        var ticketIds = ticketRepository.getNeedProcessTicketIds();
-        var tickets = ticketRepository.getTickets(ticketIds);
+        var issueIds = removeProcessedIds(ticketRepository.getNeedProcessTicketIds());
+        var tickets = ticketRepository.getTickets(issueIds);
 
         return Set.copyOf(tickets);
     }
 
     @Override
     public Set<Ticket> getNeedProcessedTickets(Set<Long> issueIdsFilter) {
-        var ticketIds = ticketRepository.getNeedProcessTicketIds();
-        var filteredIds = ticketIds.stream()
-                .filter(ticketId -> issueIdsFilter.contains(ticketId))
+        var issueIds = removeProcessedIds(ticketRepository.getNeedProcessTicketIds());
+        var filteredIds = issueIds.stream()
+                .filter(issueId -> issueIdsFilter.contains(issueId))
                 .collect(Collectors.toList());
         var tickets = ticketRepository.getTickets(filteredIds);
 
         return Set.copyOf(tickets);
     }
 
+    private List<Long> removeProcessedIds(List<Long> issueIds) {
+        return issueIds.stream().filter(issueId -> !excludedOkDeskIssueIds.contains(issueId)).collect(Collectors.toList());
+    }
+
     @Override
     public void processTicket(@NonNull Ticket ticket) {
         if (!isNeedProcessTicket(ticket)) {
-            ticketRepository.addExcludedOkDeskIssueIds(ticket.getId());
+            addExcludedOkDeskIssueId(ticket.getId());
             return;
         }
 
@@ -67,7 +80,8 @@ public class TicketServiceImpl implements TicketService {
 
         try {
             if (spreadsheetRepository.insertOrderData(spreadsheetTitle, order)) {
-                ticketRepository.addExcludedOkDeskIssueIds(ticket.getId());
+                addExcludedOkDeskIssueId(ticket.getId());
+                ticketRepository.markTicketAsProcessed(ticket, processedCommentMarker);
                 logger.info("Order '{}' added to spreadsheet at sheet '{}'", order.getOrderId(), spreadsheetTitle);
             } else {
                 throw new TicketException("Can't insert order to spreadsheet");
@@ -89,6 +103,11 @@ public class TicketServiceImpl implements TicketService {
             return true;
         }
 
-        return ticket.getUserComments().stream().noneMatch(comment -> comment.getContent().contains(Ticket.processedTicketCommentText));
+        return ticket.getUserComments().stream().noneMatch(comment -> comment.getContent().contains(processedCommentMarker));
+    }
+
+    @Override
+    public void addExcludedOkDeskIssueId(Long id){
+        excludedOkDeskIssueIds.add(id);
     }
 }

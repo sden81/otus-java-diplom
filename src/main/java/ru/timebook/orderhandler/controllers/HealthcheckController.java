@@ -1,6 +1,5 @@
 package ru.timebook.orderhandler.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,8 +9,11 @@ import ru.timebook.orderhandler.healthcheck.dto.ReadinessHealthcheck;
 
 @RestController
 public class HealthcheckController {
-    @Autowired
-    HealthcheckService healthcheckService;
+    private final HealthcheckService healthcheckService;
+
+    public HealthcheckController(HealthcheckService healthcheckService) {
+        this.healthcheckService = healthcheckService;
+    }
 
     @GetMapping("/health/readiness")
     public ReadinessHealthcheck readinessHealthcheck() {

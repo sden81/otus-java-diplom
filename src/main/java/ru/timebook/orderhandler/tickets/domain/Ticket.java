@@ -1,6 +1,7 @@
 package ru.timebook.orderhandler.tickets.domain;
 
 import lombok.Builder;
+import lombok.Data;
 import lombok.Singular;
 import lombok.Value;
 import ru.timebook.orderhandler.okDeskClient.dto.Author;
@@ -10,19 +11,17 @@ import ru.timebook.orderhandler.okDeskClient.dto.Status;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Value
+@Data
 @Builder
 public class Ticket {
-    long id;
-    String title;
-    String description;
-    Author author;
-    LocalDateTime createdAt;
-    LocalDateTime completedAt;
-    LocalDateTime updatedAt;
+    private final long id;
+    private String title;
+    private String description;
+    private final Author author;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime completedAt;
+    private final LocalDateTime updatedAt;
     @Singular("addComment")
-    List<UserComment> userComments;
-    Status status;
-
-    public static String processedTicketCommentText = "Данные из заявки перенесены в таблицу";
+    private final List<UserComment> userComments;
+    private final Status status;
 }
