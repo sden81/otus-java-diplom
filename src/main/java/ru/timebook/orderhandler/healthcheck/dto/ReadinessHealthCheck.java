@@ -8,8 +8,8 @@ import java.util.Set;
 
 @Data
 @Builder
-public class ReadinessHealthcheck {
-    private final Integer readinessHealthcheckStatus;
+public class ReadinessHealthCheck {
+    private final Integer readinessHealthCheckStatus;
     @Singular("addItem")
     private final Set<Item> items;
 }

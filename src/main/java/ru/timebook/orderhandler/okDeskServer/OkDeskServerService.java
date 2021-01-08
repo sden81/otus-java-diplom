@@ -77,7 +77,7 @@ public class OkDeskServerService {
     }
 
     public List<Long> getAllIssueIds() {
-        return issueRepository.getAllIssueIds();
+        return issueRepository.findAll().stream().map(ru.timebook.orderhandler.okDeskServer.domain.Issue::getId).collect(Collectors.toList());
     }
 
     public List<UserComment> getCommentsByIssueId(Long issueId) {

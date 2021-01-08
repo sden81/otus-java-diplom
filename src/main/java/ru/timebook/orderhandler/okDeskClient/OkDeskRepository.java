@@ -12,7 +12,7 @@ public interface OkDeskRepository {
 
     Optional<Issue> getIssue(@NonNull Long id);
 
-    List<Long> getIssuesList(IssueListFilter issueListFilter);
+    List<Long> getIssueIdsList(IssueListFilter issueListFilter);
 
     void addComment(Long id, String commentText);
 

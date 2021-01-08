@@ -6,12 +6,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.timebook.orderhandler.OrderHandler;
+import ru.timebook.orderhandler.tasks.jobs.AddNeedProcessedTicketJob;
+import ru.timebook.orderhandler.tasks.jobs.ProcessTicketJob;
+import ru.timebook.orderhandler.tasks.jobs.SingleProcessTicketJob;
+import ru.timebook.orderhandler.tasks.jobs.TokenGenerationJob;
 import ru.timebook.orderhandler.tickets.TicketService;
+import ru.timebook.orderhandler.tickets.domain.Ticket;
 
+import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Service
 public class TaskServiceImpl implements TaskService {
@@ -23,51 +27,63 @@ public class TaskServiceImpl implements TaskService {
     @Value("${generateTokenOnly:false}")
     private boolean generateTokenOnly;
 
-    private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);
 
-    @Value("${processIssueIdsOnly:}#{T(java.util.Collections).emptySet()}")
-    private Set<Long> processIssueIdsOnly;
+    private final Set<Long> processIssueIdsOnly;
+
+    private final BlockingQueue<Ticket> needProcessTicketsQueue = new ArrayBlockingQueue<>(100);
 
     private final Logger logger = LoggerFactory.getLogger(OrderHandler.class);
 
-    public TaskServiceImpl(TicketService ticketService) {
+    public TaskServiceImpl(
+            TicketService ticketService,
+            @Value("${processIssueIdsOnly:}#{T(java.util.Collections).emptySet()}") Set<Long> processIssueIdsOnly
+    ) {
         this.ticketService = ticketService;
+        this.processIssueIdsOnly = processIssueIdsOnly;
     }
 
     public void runTask() {
-        Runnable task = getTask();
+        var jobs = getJobs();
 
-        if (schedulingInterval > 0) {
-            scheduledExecutorService.scheduleAtFixedRate(task, 0, schedulingInterval, TimeUnit.SECONDS);
-        } else {
-            task.run();
-        }
+        jobs.forEach((job) -> {
+            if (job instanceof AddNeedProcessedTicketJob) {
+                scheduledExecutorService.scheduleAtFixedRate(job, 0, schedulingInterval, TimeUnit.SECONDS);
+            } else {
+                scheduledExecutorService.execute(job);
+            }
+        });
     }
 
-    private Runnable getTask() {
-        //for google sheet Token generating
+    private Set<Runnable> getJobs() {
+        var jobs = new HashSet<Runnable>();
+
         if (generateTokenOnly) {
-            return () -> {
-                logger.info("Generating google sheet access Token in 'Token' directory");
-            };
+            jobs.add(new TokenGenerationJob(this));
+            return jobs;
         }
 
-        return () -> {
-            try {
-                synchronized (this) {
-                    var needProcessedTickets = processIssueIdsOnly.isEmpty() ?
-                            ticketService.getNeedProcessedTickets() :
-                            ticketService.getNeedProcessedTickets(processIssueIdsOnly);
+        if (isSingleTask()) {
+            jobs.add(new SingleProcessTicketJob(
+                    needProcessTicketsQueue,
+                    processIssueIdsOnly,
+                    ticketService,
+                    this
+            ));
+            return jobs;
+        }
 
-                    logger.info("Find {} need processed tickets", needProcessedTickets.size());
-                    needProcessedTickets.forEach(ticketService::processTicket);
-                }
-            } catch (Exception ex) {
-                logger.error("Something wrong", ex);
-                shutdown();
-                System.exit(1);
-            }
-        };
+        jobs.add(new AddNeedProcessedTicketJob(
+                needProcessTicketsQueue,
+                processIssueIdsOnly,
+                ticketService
+        ));
+        jobs.add(new ProcessTicketJob(
+                needProcessTicketsQueue,
+                ticketService
+        ));
+
+        return jobs;
     }
 
     @SneakyThrows
@@ -92,6 +108,12 @@ public class TaskServiceImpl implements TaskService {
     }
 
     public Boolean isSingleTask() {
-        return schedulingInterval == 0;
+        return schedulingInterval == 0 || generateTokenOnly;
+    }
+
+    @Override
+    @SneakyThrows
+    public boolean waitShutdown() {
+        return scheduledExecutorService.awaitTermination(20, TimeUnit.SECONDS);
     }
 }

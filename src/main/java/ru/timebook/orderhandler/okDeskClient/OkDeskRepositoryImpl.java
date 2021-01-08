@@ -18,8 +18,8 @@ import java.util.stream.Collectors;
 @Service
 public class OkDeskRepositoryImpl implements OkDeskRepository {
 
-    private RestTemplate restTemplate;
-    private String apiToken;
+    private final RestTemplate restTemplate;
+    private final String apiToken;
 
     Logger logger = LoggerFactory.getLogger(OkDeskRepositoryImpl.class);
 
@@ -31,7 +31,7 @@ public class OkDeskRepositoryImpl implements OkDeskRepository {
 
     @Override
     public List<UserComment> getComments(@NonNull Long id) {
-        String url = "/issues/" + id.toString() + "/comments?api_token=" + apiToken;
+        String url = String.format("/issues/%s/comments?api_token=%s",id.toString(),apiToken);
         try {
             var response = restTemplate.getForEntity(url, UserComment[].class);
             return Arrays.asList(response.getBody());
@@ -54,7 +54,7 @@ public class OkDeskRepositoryImpl implements OkDeskRepository {
     }
 
     @Override
-    public List<Long> getIssuesList(IssueListFilter issueListFilter) {
+    public List<Long> getIssueIdsList(IssueListFilter issueListFilter) {
         String filterParams = String.join("&", issueListFilter.generateParams());
         filterParams = (!filterParams.isEmpty()) ? "&" + filterParams : "";
         String url = "/issues/count?api_token=" + apiToken + filterParams;

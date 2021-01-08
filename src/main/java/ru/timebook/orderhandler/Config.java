@@ -1,21 +1,29 @@
 package ru.timebook.orderhandler;
 
 import com.google.common.cache.CacheBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import ru.timebook.orderhandler.healthcheck.HealthCheckService;
+import ru.timebook.orderhandler.healthcheck.items.GoogleSpreadsheetIntegrationCheck;
+import ru.timebook.orderhandler.healthcheck.items.HealthCheckItem;
+import ru.timebook.orderhandler.healthcheck.items.OkDeskIntegrationCheck;
 import ru.timebook.orderhandler.okDeskClient.IssueListFilter;
 import ru.timebook.orderhandler.okDeskClient.dto.StatusCodes;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +42,7 @@ public class Config {
 
     /**
      * Список открытых заявок на закупку считывателей от Ашана
+     *
      * @param sinceDaysAgo
      * @return
      */
@@ -51,7 +60,7 @@ public class Config {
                 .build();
     }
 
-    @Bean()
+    @Bean
     public CacheManager cacheManager() {
         return new ConcurrentMapCacheManager() {
             @Override
@@ -64,5 +73,14 @@ public class Config {
                         false);
             }
         };
+    }
+
+    @Bean
+    public HealthCheckService healthCheckService(@Autowired ApplicationContext appContext) {
+        var items = new HashSet<HealthCheckItem>();
+        items.add(appContext.getBean(GoogleSpreadsheetIntegrationCheck.class));
+        items.add(appContext.getBean(OkDeskIntegrationCheck.class));
+
+        return new HealthCheckService(items);
     }
 }

@@ -8,10 +8,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationContext;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 import ru.timebook.orderhandler.spreadsheet.exceptions.OrderRecordAlreadyExistException;
 import ru.timebook.orderhandler.spreadsheet.exceptions.SpreadSheetException;
+import ru.timebook.orderhandler.spreadsheet.models.ColumnNameToColumnLetterMapper;
+import ru.timebook.orderhandler.spreadsheet.models.SheetColumnLetterMap;
+import ru.timebook.orderhandler.spreadsheet.models.SheetColumnLetterMapImpl;
 import ru.timebook.orderhandler.tickets.domain.Order;
 
 import java.util.*;
@@ -22,31 +26,36 @@ import java.util.stream.Stream;
 @Repository
 @Slf4j
 public class SpreadsheetRepositoryImpl implements SpreadsheetRepository {
-    @Autowired
-    Sheets sheets;
-    String spreadsheetId;
+    private final Sheets sheets;
+    private final String spreadsheetId;
     Spreadsheet spreadsheet;
 
-    Map<String, Map<String, String>> colTitleToLetterMap = new HashMap<>();
+    private final ColumnNameToColumnLetterMapper columnNameToColumnLetterMapper;
 
-    private String orderIdColumnTitle;
+    private final String orderIdColumnTitle;
 
-    @Value("${spreadsheet.template_sheet_title}")
-    private String templateSheetTitle;
+    private final String templateSheetTitle;
+
+    private final CacheManager cacheManager;
 
     @Autowired
-    CacheManager cacheManager;
+    private ApplicationContext appContext;
 
     @Autowired
     public SpreadsheetRepositoryImpl(
             Sheets sheets,
             @Value("${spreadsheet.id}") String spreadsheetId,
-            @Value("${spreadsheet.order_id_column_title}") String orderIdColumnTitle
-    ) {
+            ColumnNameToColumnLetterMapper columnNameToColumnLetterMapper,
+            @Value("${spreadsheet.order_id_column_title}") String orderIdColumnTitle,
+            @Value("${spreadsheet.template_sheet_title}") String templateSheetTitle,
+            CacheManager cacheManager) {
         this.sheets = sheets;
         this.spreadsheetId = spreadsheetId;
+        this.columnNameToColumnLetterMapper = columnNameToColumnLetterMapper;
+        this.cacheManager = cacheManager;
         setSpreadsheet();
         this.orderIdColumnTitle = orderIdColumnTitle;
+        this.templateSheetTitle = templateSheetTitle;
     }
 
     public void setSpreadsheet() {
@@ -63,29 +72,30 @@ public class SpreadsheetRepositoryImpl implements SpreadsheetRepository {
         ValueRange response = requestData(range);
 
         if (response.getValues() == null) {
-            return new ArrayList<String>();
+            return new ArrayList<>();
         }
 
         var result = response.getValues().stream()
-                .filter(item-> !item.isEmpty())
+                .filter(item -> !item.isEmpty())
                 .map(item -> item.get(0).toString())
-                .collect(Collectors.toList());;
+                .collect(Collectors.toList());
+        ;
 
         return result;
     }
 
     public String getColLetterByColTitle(@NonNull String sheetTitle, String colName) {
-        var sheetColLetterByColTitleMap = colTitleToLetterMap.get(sheetTitle);
-        if (sheetColLetterByColTitleMap == null) {
-            colTitleToLetterMap.put(sheetTitle, createColNameByLetterMap(sheetTitle));
+        if (!columnNameToColumnLetterMapper.isSheetTitleExist(sheetTitle)) {
+            columnNameToColumnLetterMapper.addColNameToColLetterMap(sheetTitle, createColNameByLetterMap(sheetTitle));
         }
 
-        var letter = colTitleToLetterMap.get(sheetTitle).get(colName);
-        if (letter == null) {
+        String colLetter = columnNameToColumnLetterMapper.getColLetterByColName(sheetTitle, colName);
+
+        if (colLetter == null) {
             throw new SpreadSheetException(String.format("Can't find column \"%s\" in sheet \"%s\"", colName, sheetTitle));
         }
 
-        return letter;
+        return colLetter;
     }
 
     private ValueRange requestData(@NonNull String range) {
@@ -98,7 +108,7 @@ public class SpreadsheetRepositoryImpl implements SpreadsheetRepository {
         }
     }
 
-    private Map<String, String> createColNameByLetterMap(@NonNull String sheetTitle) {
+    private SheetColumnLetterMap createColNameByLetterMap(@NonNull String sheetTitle) {
         String range = sheetTitle + "!A1:Z1";
 
         var response = requestData(range);
@@ -111,16 +121,15 @@ public class SpreadsheetRepositoryImpl implements SpreadsheetRepository {
         var titlesList = values.get(0);
         char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 
-        var colNameByLetterMap = new HashMap<String, String>();
-        String colTitle;
+        SheetColumnLetterMap sheetColumnLetterMap = appContext.getBean(SheetColumnLetterMap.class);
         for (int i = 0; i < titlesList.size(); i++) {
-            colTitle = titlesList.get(i).toString().trim();
+            String colTitle = titlesList.get(i).toString().trim();
             if (!colTitle.isEmpty()) {
-                colNameByLetterMap.put(titlesList.get(i).toString().trim(), String.valueOf(alphabet[i]));
+                sheetColumnLetterMap.addColumnNameLetterItem(colTitle, String.valueOf(alphabet[i]));
             }
         }
 
-        return colNameByLetterMap;
+        return sheetColumnLetterMap;
     }
 
     public int getLastRecordInColumnIndex(@NonNull String sheetTitle, @NonNull String columnName) {

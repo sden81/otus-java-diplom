@@ -51,7 +51,7 @@ class SpreadsheetRepositoryTest extends AbstractTest {
         assertThatThrownBy(() -> {
             int lastRowIndex2 = spreadsheetRepository.getLastRecordInColumnIndex(TEST_SHEET_NAME, "some text");
         }).isInstanceOf(SpreadSheetException.class)
-                .hasMessageContaining("Can't find column");
+                .hasMessageContaining("not exist");
     }
 
     @Test

@@ -88,6 +88,7 @@ public class TicketServiceImpl implements TicketService {
             }
         } catch (OrderRecordAlreadyExistException ex) {
             logger.info("Order '{}' already exist in spreadsheet", order.getOrderId());
+            addExcludedOkDeskIssueId(ticket.getId());
             return;
         }
     }
@@ -110,4 +111,6 @@ public class TicketServiceImpl implements TicketService {
     public void addExcludedOkDeskIssueId(Long id){
         excludedOkDeskIssueIds.add(id);
     }
+
+
 }

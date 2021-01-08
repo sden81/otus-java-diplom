@@ -9,6 +9,5 @@ import java.util.List;
 
 @Repository
 public interface IssueRepository extends JpaRepository<Issue, Long> {
-    @Query(value = "SELECT id FROM issue", nativeQuery = true)
-    List<Long> getAllIssueIds();
+    List<Issue> findAll();
 }

@@ -2,11 +2,13 @@ package ru.timebook.orderhandler.okDeskClient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
+import lombok.Data;
 import lombok.Singular;
-import lombok.Value;
 import ru.timebook.orderhandler.okDeskClient.dto.StatusCodes;
 
 import java.time.LocalDate;
+import java.time.Month;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,18 +16,18 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Builder
-@Value
+@Data
 public class IssueListFilter {
     @Singular("addStatus")
-    List<StatusCodes> status;
+    private final List<StatusCodes> status;
     @Singular("addStatusNot")
-    List<StatusCodes> status_not;
-    LocalDate created_since;
-    LocalDate created_until;
-    LocalDate updated_since;
-    LocalDate updated_until;
+    private final List<StatusCodes> status_not;
+    private final LocalDate created_since;
+    private final LocalDate created_until;
+    private final LocalDate updated_since;
+    private final LocalDate updated_until;
     @Singular("addAuthorId")
-    List<Integer> author_contact_ids;
+    private final List<Integer> author_contact_ids;
 
     public List<String> generateParams() {
         List<String> paramsList = new ArrayList<>();
@@ -59,10 +61,9 @@ public class IssueListFilter {
             Integer month = (Integer) ((LinkedHashMap) field).get("monthValue");
             Integer day = (Integer) ((LinkedHashMap) field).get("dayOfMonth");
 
-            return key + "=" +
-                    ((day > 9) ? day.toString() : "0" + day.toString()) + "-" +
-                    ((month > 9) ? month.toString() : "0" + month.toString()) + "-" +
-                    year.toString();
+            var date = LocalDate.of(year, Month.of(month), day);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            return key + "=" + date.format(formatter);
         }
 
         return "";

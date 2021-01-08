@@ -4,24 +4,24 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.timebook.orderhandler.healthcheck.HealthcheckService;
-import ru.timebook.orderhandler.healthcheck.dto.ReadinessHealthcheck;
+import ru.timebook.orderhandler.healthcheck.HealthCheckService;
+import ru.timebook.orderhandler.healthcheck.dto.ReadinessHealthCheck;
 
 @RestController
-public class HealthcheckController {
-    private final HealthcheckService healthcheckService;
+public class HealthCheckController {
+    private final HealthCheckService healthcheckService;
 
-    public HealthcheckController(HealthcheckService healthcheckService) {
+    public HealthCheckController(HealthCheckService healthcheckService) {
         this.healthcheckService = healthcheckService;
     }
 
     @GetMapping("/health/readiness")
-    public ReadinessHealthcheck readinessHealthcheck() {
-        return healthcheckService.getReadinessHealthcheck();
+    public ReadinessHealthCheck readinessHealthcheck() {
+        return healthcheckService.getReadinessHealthCheck();
     }
 
     @GetMapping("/health/liveness")
-    public ResponseEntity livenessHealthcheck() {
+    public ResponseEntity livenessHealthCheck() {
         return new ResponseEntity(HttpStatus.OK);
     }
 }

@@ -19,6 +19,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import ru.timebook.orderhandler.spreadsheet.exceptions.SpreadSheetException;
+import ru.timebook.orderhandler.spreadsheet.models.ColumnNameToColumnLetterMapper;
+import ru.timebook.orderhandler.spreadsheet.models.ColumnNameToColumnLetterMapperImpl;
+import ru.timebook.orderhandler.spreadsheet.models.SheetColumnLetterMap;
+import ru.timebook.orderhandler.spreadsheet.models.SheetColumnLetterMapImpl;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -83,5 +87,15 @@ public class SpreadSheetConfig {
         return new Sheets.Builder(netHttpTransport, jsonFactory, credential)
                 .setApplicationName(applicationName)
                 .build();
+    }
+
+    @Bean
+    ColumnNameToColumnLetterMapper createColumnNameToColumnLetterMapper(){
+        return new ColumnNameToColumnLetterMapperImpl();
+    }
+
+    @Bean
+    SheetColumnLetterMap createSheetColumnLetterMap(){
+        return new SheetColumnLetterMapImpl();
     }
 }

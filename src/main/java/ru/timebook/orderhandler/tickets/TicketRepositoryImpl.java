@@ -24,7 +24,7 @@ public class TicketRepositoryImpl implements TicketRepository {
 
     @Override
     public List<Long> getNeedProcessTicketIds() {
-        return okDeskRepository.getIssuesList(listFilter);
+        return okDeskRepository.getIssueIdsList(listFilter);
     }
 
     @Override

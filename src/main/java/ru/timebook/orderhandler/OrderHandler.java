@@ -9,13 +9,23 @@ import ru.timebook.orderhandler.tasks.TaskServiceImpl;
 @SpringBootApplication
 @EnableCaching(proxyTargetClass = true)
 public class OrderHandler {
-        public static void main(String[] args) {
-            ApplicationContext context = SpringApplication.run(OrderHandler.class, args);
+    public static void main(String[] args) {
+        ApplicationContext context = SpringApplication.run(OrderHandler.class, args);
 
+        try {
             var taskService = context.getBean(TaskServiceImpl.class);
             taskService.runTask();
-            if (taskService.isSingleTask()){
-                System.exit(0);
+            if (taskService.isSingleTask()) {
+                if (taskService.waitShutdown()){
+                    System.out.println("All jobs finished");
+                    System.exit(0);
+                } else {
+                    System.out.println("Some jobs not finished");
+                    System.exit(1);
+                }
             }
+        } catch (Exception ex) {
+            System.exit(1);
         }
     }
+}
