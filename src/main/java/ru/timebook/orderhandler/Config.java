@@ -24,6 +24,7 @@ import ru.timebook.orderhandler.okDeskClient.dto.StatusCodes;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -76,11 +77,14 @@ public class Config {
     }
 
     @Bean
-    public HealthCheckService healthCheckService(@Autowired ApplicationContext appContext) {
+    public Set<HealthCheckItem> getHealthCheckItems(
+            GoogleSpreadsheetIntegrationCheck googleSpreadsheetIntegrationCheck,
+            OkDeskIntegrationCheck okDeskIntegrationCheck
+    ) {
         var items = new HashSet<HealthCheckItem>();
-        items.add(appContext.getBean(GoogleSpreadsheetIntegrationCheck.class));
-        items.add(appContext.getBean(OkDeskIntegrationCheck.class));
+        items.add(googleSpreadsheetIntegrationCheck);
+        items.add(okDeskIntegrationCheck);
 
-        return new HealthCheckService(items);
+        return items;
     }
 }

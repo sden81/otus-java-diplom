@@ -1,6 +1,6 @@
 package ru.timebook.orderhandler.spreadsheet.models;
 
-import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 import ru.timebook.orderhandler.spreadsheet.exceptions.SpreadSheetException;
 
 import java.util.HashMap;

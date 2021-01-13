@@ -8,6 +8,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import ru.timebook.orderhandler.AbstractTest;
@@ -46,8 +47,8 @@ class TicketServiceImplTest extends AbstractTest {
     Ticket fakeTicket;
 
     @BeforeEach
-    void init() {
-        ticketService = new TicketServiceImpl(mockTicketRepository, mockSpreadsheetRepository, ticketParser);
+    void init(@Value("${okDesk.processed_comment_marker}") String processedCommentMarker ) {
+        ticketService = new TicketServiceImpl(mockTicketRepository, mockSpreadsheetRepository, ticketParser, processedCommentMarker);
         fakeTicket = getFakeTicket();
     }
 

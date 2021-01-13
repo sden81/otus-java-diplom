@@ -13,6 +13,7 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
+import com.google.api.services.sheets.v4.model.Spreadsheet;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -97,5 +98,14 @@ public class SpreadSheetConfig {
     @Bean
     SheetColumnLetterMap createSheetColumnLetterMap(){
         return new SheetColumnLetterMapImpl();
+    }
+
+    @Bean
+    Spreadsheet createSpreadsheet(Sheets sheets, @Value("${spreadsheet.id}") String spreadsheetId){
+        try {
+            return sheets.spreadsheets().get(spreadsheetId).execute();
+        } catch (Exception ex) {
+            throw new RuntimeException(ex.getMessage());
+        }
     }
 }

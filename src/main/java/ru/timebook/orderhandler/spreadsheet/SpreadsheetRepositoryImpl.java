@@ -8,14 +8,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.ApplicationContext;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 import ru.timebook.orderhandler.spreadsheet.exceptions.OrderRecordAlreadyExistException;
 import ru.timebook.orderhandler.spreadsheet.exceptions.SpreadSheetException;
 import ru.timebook.orderhandler.spreadsheet.models.ColumnNameToColumnLetterMapper;
 import ru.timebook.orderhandler.spreadsheet.models.SheetColumnLetterMap;
-import ru.timebook.orderhandler.spreadsheet.models.SheetColumnLetterMapImpl;
 import ru.timebook.orderhandler.tickets.domain.Order;
 
 import java.util.*;
@@ -28,7 +26,6 @@ import java.util.stream.Stream;
 public class SpreadsheetRepositoryImpl implements SpreadsheetRepository {
     private final Sheets sheets;
     private final String spreadsheetId;
-    Spreadsheet spreadsheet;
 
     private final ColumnNameToColumnLetterMapper columnNameToColumnLetterMapper;
 
@@ -38,8 +35,7 @@ public class SpreadsheetRepositoryImpl implements SpreadsheetRepository {
 
     private final CacheManager cacheManager;
 
-    @Autowired
-    private ApplicationContext appContext;
+    private final SheetColumnLetterMap sheetColumnLetterMap;
 
     @Autowired
     public SpreadsheetRepositoryImpl(
@@ -48,19 +44,21 @@ public class SpreadsheetRepositoryImpl implements SpreadsheetRepository {
             ColumnNameToColumnLetterMapper columnNameToColumnLetterMapper,
             @Value("${spreadsheet.order_id_column_title}") String orderIdColumnTitle,
             @Value("${spreadsheet.template_sheet_title}") String templateSheetTitle,
-            CacheManager cacheManager) {
+            CacheManager cacheManager,
+            SheetColumnLetterMap sheetColumnLetterMap) {
         this.sheets = sheets;
         this.spreadsheetId = spreadsheetId;
         this.columnNameToColumnLetterMapper = columnNameToColumnLetterMapper;
         this.cacheManager = cacheManager;
-        setSpreadsheet();
+        this.sheetColumnLetterMap = sheetColumnLetterMap;
         this.orderIdColumnTitle = orderIdColumnTitle;
         this.templateSheetTitle = templateSheetTitle;
     }
 
-    public void setSpreadsheet() {
+    @Cacheable("spreadsheet")
+    public Spreadsheet getSpreadsheet(){
         try {
-            this.spreadsheet = sheets.spreadsheets().get(spreadsheetId).execute();
+            return sheets.spreadsheets().get(spreadsheetId).execute();
         } catch (Exception ex) {
             throw new RuntimeException(ex.getMessage());
         }
@@ -121,7 +119,6 @@ public class SpreadsheetRepositoryImpl implements SpreadsheetRepository {
         var titlesList = values.get(0);
         char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 
-        SheetColumnLetterMap sheetColumnLetterMap = appContext.getBean(SheetColumnLetterMap.class);
         for (int i = 0; i < titlesList.size(); i++) {
             String colTitle = titlesList.get(i).toString().trim();
             if (!colTitle.isEmpty()) {
@@ -242,11 +239,9 @@ public class SpreadsheetRepositoryImpl implements SpreadsheetRepository {
         return isExistOrderId(sheetTitle, order.getOrderId());
     }
 
-    //TODO вынести в конфиг
-    @Cacheable("sheetTitles")
     public Map<Integer, String> getSheetsTitles() {
         log.info("getting sheet titles for spreadsheet with id: {}", spreadsheetId);
-        List<Sheet> sheetsProperty = (List) spreadsheet.getSheets();
+        List<Sheet> sheetsProperty = getSpreadsheet().getSheets();
 
         Map<Integer, String> sheetsTitle = new HashMap<>();
         sheetsProperty.stream().forEach(sheet -> {
@@ -257,7 +252,7 @@ public class SpreadsheetRepositoryImpl implements SpreadsheetRepository {
     }
 
     @Override
-    @CacheEvict(value = "sheetTitles", allEntries = true)
+    @CacheEvict(value = "spreadsheet", allEntries = true)
     public void createSheet(@NonNull String newSheetTitle) {
         try {
             var templateSheetId = getSheetsTitles().entrySet().stream()
@@ -280,14 +275,13 @@ public class SpreadsheetRepositoryImpl implements SpreadsheetRepository {
                     sheets.spreadsheets().batchUpdate(spreadsheetId, requestBody);
 
             BatchUpdateSpreadsheetResponse response = request.execute();
-            setSpreadsheet();
         } catch (Exception ex) {
             throw new SpreadSheetException(ex);
         }
     }
 
     @Override
-    @CacheEvict(value = "sheetTitles", allEntries = true)
+    @CacheEvict(value = "spreadsheet", allEntries = true)
     public void deleteSheet(@NonNull String sheetTitle) {
         try {
             var sheetIdForDelete = getSheetsTitles().entrySet().stream()
@@ -309,7 +303,6 @@ public class SpreadsheetRepositoryImpl implements SpreadsheetRepository {
                     sheets.spreadsheets().batchUpdate(spreadsheetId, requestBody);
 
             BatchUpdateSpreadsheetResponse response = request.execute();
-            setSpreadsheet();
         } catch (Exception ex) {
             throw new SpreadSheetException(ex);
         }

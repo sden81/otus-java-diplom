@@ -5,7 +5,7 @@ import ru.timebook.orderhandler.spreadsheet.SpreadsheetRepository;
 
 @Component
 public class GoogleSpreadsheetIntegrationCheck implements HealthCheckItem {
-    private String NAME = "Google Spreadsheet Integration Check";
+    private static final String NAME = "Google Spreadsheet Integration Check";
     private final SpreadsheetRepository spreadsheetRepository;
 
     public GoogleSpreadsheetIntegrationCheck(SpreadsheetRepository spreadsheetRepository) {

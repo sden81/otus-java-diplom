@@ -5,20 +5,16 @@ import org.slf4j.LoggerFactory;
 import ru.timebook.orderhandler.tasks.TaskService;
 import ru.timebook.orderhandler.tasks.TaskServiceException;
 import ru.timebook.orderhandler.tickets.TicketService;
-import ru.timebook.orderhandler.tickets.domain.Ticket;
 
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 
 public class SingleProcessTicketJob implements Runnable{
-    private final BlockingQueue<Ticket> needProcessTicketsQueue;
     private final Set<Long> processIssueIdsOnly;
     private final TicketService ticketService;
     private final Logger logger = LoggerFactory.getLogger(SingleProcessTicketJob.class);
     private final TaskService taskService;
 
-    public SingleProcessTicketJob(BlockingQueue<Ticket> needProcessTicketsQueue, Set<Long> processIssueIdsOnly, TicketService ticketService, TaskService taskService) {
-        this.needProcessTicketsQueue = needProcessTicketsQueue;
+    public SingleProcessTicketJob(Set<Long> processIssueIdsOnly, TicketService ticketService, TaskService taskService) {
         this.processIssueIdsOnly = processIssueIdsOnly;
         this.ticketService = ticketService;
         this.taskService = taskService;
@@ -40,9 +36,5 @@ public class SingleProcessTicketJob implements Runnable{
         } finally {
             taskService.shutdown();
         }
-
-        var needProcessedTickets = processIssueIdsOnly.isEmpty() ?
-                ticketService.getNeedProcessedTickets() :
-                ticketService.getNeedProcessedTickets(processIssueIdsOnly);
     }
 }

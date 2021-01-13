@@ -28,16 +28,17 @@ public class TicketServiceImpl implements TicketService {
 
     private final Logger logger = LoggerFactory.getLogger(OrderHandler.class);
 
-    @Value("${okDesk.processed_comment_marker}")
-    private String processedCommentMarker;
+    private final String processedCommentMarker;
 
     public TicketServiceImpl(
             TicketRepository ticketRepository,
             SpreadsheetRepository spreadsheetRepository,
-            TicketParser ticketParser) {
+            TicketParser ticketParser,
+            @Value("${okDesk.processed_comment_marker}") String processedCommentMarker) {
         this.ticketRepository = ticketRepository;
         this.spreadsheetRepository = spreadsheetRepository;
         this.ticketParser = ticketParser;
+        this.processedCommentMarker = processedCommentMarker;
     }
 
     @Override
@@ -108,7 +109,7 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public void addExcludedOkDeskIssueId(Long id){
+    public void addExcludedOkDeskIssueId(Long id) {
         excludedOkDeskIssueIds.add(id);
     }
 

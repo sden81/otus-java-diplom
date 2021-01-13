@@ -21,11 +21,9 @@ import java.util.concurrent.*;
 public class TaskServiceImpl implements TaskService {
     private final TicketService ticketService;
 
-    @Value("${schedulingInterval:0}")
-    private Long schedulingInterval;
+    private final Long schedulingInterval;
 
-    @Value("${generateTokenOnly:false}")
-    private boolean generateTokenOnly;
+    private final boolean generateTokenOnly;
 
     private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);
 
@@ -37,9 +35,13 @@ public class TaskServiceImpl implements TaskService {
 
     public TaskServiceImpl(
             TicketService ticketService,
+            @Value("${schedulingInterval:0}") Long schedulingInterval,
+            @Value("${generateTokenOnly:false}") boolean generateTokenOnly,
             @Value("${processIssueIdsOnly:}#{T(java.util.Collections).emptySet()}") Set<Long> processIssueIdsOnly
     ) {
         this.ticketService = ticketService;
+        this.schedulingInterval = schedulingInterval;
+        this.generateTokenOnly = generateTokenOnly;
         this.processIssueIdsOnly = processIssueIdsOnly;
     }
 
@@ -65,7 +67,6 @@ public class TaskServiceImpl implements TaskService {
 
         if (isSingleTask()) {
             jobs.add(new SingleProcessTicketJob(
-                    needProcessTicketsQueue,
                     processIssueIdsOnly,
                     ticketService,
                     this

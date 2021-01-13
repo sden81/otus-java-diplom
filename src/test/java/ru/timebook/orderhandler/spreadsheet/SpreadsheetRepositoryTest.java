@@ -100,13 +100,13 @@ class SpreadsheetRepositoryTest extends AbstractTest {
 
         if (spreadsheetRepository.getSheetsTitles().containsValue(newSheetTitle)) {
             spreadsheetRepository.deleteSheet(newSheetTitle);
-            Thread.sleep(1000);
+            Thread.sleep(3000);
         }
 
         boolean isFalse = spreadsheetRepository.getSheetsTitles().containsValue(newSheetTitle);
         assertThat(isFalse).isFalse();
         spreadsheetRepository.createSheet(newSheetTitle);
-        Thread.sleep(1000);
+        Thread.sleep(3000);
         boolean isTrue = spreadsheetRepository.getSheetsTitles().containsValue(newSheetTitle);
         assertThat(isTrue).isTrue();
         spreadsheetRepository.deleteSheet(newSheetTitle);

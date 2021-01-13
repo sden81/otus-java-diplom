@@ -5,7 +5,7 @@ import ru.timebook.orderhandler.okDeskClient.OkDeskRepository;
 
 @Component
 public class OkDeskIntegrationCheck implements HealthCheckItem{
-    private String NAME = "OkDesk Integration Check";
+    private static final String NAME = "OkDesk Integration Check";
     private final OkDeskRepository okDeskRepository;
 
     public OkDeskIntegrationCheck(OkDeskRepository okDeskRepository) {
