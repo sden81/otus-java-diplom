@@ -1,0 +1,14 @@
+version: "3.4"
+services:
+  app:
+    container_name: purchase-order
+    ports:
+      - '8084:8084'
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - /tmp:/tmp
+      - /var/log/purchase-order:/app/logs
+      - $HOME/.m2:/root/.m2

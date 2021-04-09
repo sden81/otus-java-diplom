@@ -1,0 +1,1 @@
+<html lang="en"><head><meta charset="UTF-8"><title>Sample</title></head><body><div id="orderId">EP3269109</div><div id="consumerName">Магазин№1</div><div id="totalSum">1500</div><div id="itemCount">2(EA)</div><div id="reportingDate">20 июня 2020</div><div id="companyName">Атак</div></body></html>
